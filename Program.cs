@@ -159,14 +159,14 @@ class Program
         var secretAppsettingReader = new SecretAppsettingReader();
         var userInfo = secretAppsettingReader.ReadSection<UserInfo>("UserInfo");
 
-        var keygen = new Keygen("demo");
+        var keygen = new Keygen(userInfo.accountId);
 
         // Keep a reference to the current license and device
         Keygen.License license = null;
         Keygen.Machine device = null;
 
         // Validate license
-        var validation = await keygen.ValidateLicense("0BB042-E1A90B-A5DC67-D651E0-73E6C5-V3", "AB:CD:EF:GH:IJ:KL:MN:OP");
+        var validation = await keygen.ValidateLicense(userInfo.licenseKey, userInfo.deviceFingerprint);
         if (validation.Meta.Valid)
         {
             Console.WriteLine("[INFO] [ValidateLicense] Valid={0} ValidationCode={1}", validation.Meta.Detail, validation.Meta.Code);
@@ -185,7 +185,7 @@ class Program
             case "FINGERPRINT_SCOPE_MISMATCH":
             case "NO_MACHINES":
             case "NO_MACHINE":
-                var activation = await keygen.ActivateDevice((string)license.ID, "AB:CD:EF:GH:IJ:KL:MN:OP", "activ-37ab75d19cfbc88b6c4c4e06c3517447v3");
+                var activation = await keygen.ActivateDevice((string)license.ID, userInfo.deviceFingerprint, userInfo.activationToken);
 
                 // Store device data
                 device = activation.Data;
@@ -193,7 +193,7 @@ class Program
                 Console.WriteLine("[INFO] [ActivateDevice] DeviceId={0} LicenseId={1}", device.ID, license.ID);
 
                 // OPTIONAL: Validate license again
-                validation = await keygen.ValidateLicense("0BB042-E1A90B-A5DC67-D651E0-73E6C5-V3", "AB:CD:EF:GH:IJ:KL:MN:OP");
+                validation = await keygen.ValidateLicense(userInfo.licenseKey, userInfo.deviceFingerprint);
                 if (validation.Meta.Valid)
                 {
                     Console.WriteLine("[INFO] [ValidateLicense] Valid={0} ValidationCode={1}", validation.Meta.Detail, validation.Meta.Code);
