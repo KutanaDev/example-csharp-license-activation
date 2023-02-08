@@ -113,6 +113,25 @@ class Keygen
         return response.Data;
     }
 
+    async public Task<Document<Machine>> DeactivateDevice(string deviceFingerprint, string activationToken)
+    {
+        var request = new RestRequest($"machines/{deviceFingerprint}", Method.Delete);
+
+        request.AddHeader("Authorization", $"Bearer {activationToken}");
+        request.AddHeader("Content-Type", "application/vnd.api+json");
+        request.AddHeader("Accept", "application/vnd.api+json");
+
+        var response = await client.ExecuteAsync<Document<Machine>>(request);
+        if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
+        {
+            Console.WriteLine("[ERROR] [ActivateDevice] Status={0} Title={1} ", response.StatusCode, response.ErrorMessage);
+
+            Environment.Exit(1);
+        }
+
+        return response.Data;
+    }
+
     public class Document<T>
     {
         public T Data { get; set; }
@@ -208,6 +227,8 @@ class Program
 
         // Print the overall results
         Console.WriteLine("[INFO] [Main] Valid={0} RecentlyActivated={1}", validation.Meta.Valid, device != null);
+
+        var deactivation = await keygen.DeactivateDevice(userInfo.deviceFingerprint, userInfo.activationToken);
     }
 
     public static void Main(string[] args)
